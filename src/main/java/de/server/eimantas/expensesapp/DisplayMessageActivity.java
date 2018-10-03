@@ -32,7 +32,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
         // Capture the layout's TextView and set the string as its text
         TextView textView = findViewById(R.id.textView);
         textView.setText(message);
-        saveStuff(message,getApplicationContext());
+        saveStuff(message, getApplicationContext());
 
     }
 
@@ -47,6 +47,8 @@ public class DisplayMessageActivity extends AppCompatActivity {
         //  dao.insertAll(exp);
 
         Log.i(TAG, "saved.: " + exp.getName() + " witj id: " + exp.getId());
-        ExpenseDatabase.get(ctx).expenseDao().insertAll(exp);
+        long id = ExpenseDatabase.get(ctx).expenseDao().insert(exp);
+
+        Log.i(TAG, "saved.: " + exp.toString() + " witj id: " + id);
     }
 }

@@ -19,6 +19,10 @@ public interface ExpenseDao {
 
     @Insert
     void insertAll(Expense... expenses);
+
+    @Insert
+    long insert(Expense exp);
+
     @Delete
     void delete(Expense expense);
 }

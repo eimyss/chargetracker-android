@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 public class Expense {
     @PrimaryKey(autoGenerate = true)
-    private long id;
+    private int id;
     @ColumnInfo(name = "name")
     private String name;
     @ColumnInfo(name = "start")
@@ -37,11 +37,11 @@ public class Expense {
     }
 
 
-    public long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -51,5 +51,15 @@ public class Expense {
 
     public void setEndDate(LocalDateTime endDate) {
         this.endDate = endDate;
+    }
+
+    @Override
+    public String toString() {
+        return "Expense{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", startdate=" + startdate +
+                ", endDate=" + endDate +
+                '}';
     }
 }
