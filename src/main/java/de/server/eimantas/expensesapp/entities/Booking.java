@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 
 @Entity
-public class Expense {
+public class Booking {
     @PrimaryKey(autoGenerate = true)
     private int id;
     @ColumnInfo(name = "name")
@@ -17,6 +17,8 @@ public class Expense {
     private LocalDateTime startdate;
     @ColumnInfo(name = "end")
     private LocalDateTime endDate;
+    @ColumnInfo(name = "project_id")
+    private int project_id;
 
 
     public LocalDateTime getStartdate() {
@@ -32,8 +34,28 @@ public class Expense {
         return name;
     }
 
+    public Booking(int id, String name, LocalDateTime startdate, LocalDateTime endDate, int project_id) {
+        this.id = id;
+        this.name = name;
+        this.startdate = startdate;
+        this.endDate = endDate;
+        this.project_id = project_id;
+    }
+
+    public Booking() {
+
+    }
+
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getProject_id() {
+        return project_id;
+    }
+
+    public void setProject_id(int project_id) {
+        this.project_id = project_id;
     }
 
 
@@ -55,7 +77,7 @@ public class Expense {
 
     @Override
     public String toString() {
-        return "Expense{" +
+        return "Booking{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", startdate=" + startdate +

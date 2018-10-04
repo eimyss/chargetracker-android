@@ -9,9 +9,9 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import de.server.eimantas.expensesapp.dao.ExpenseDao;
-import de.server.eimantas.expensesapp.entities.Expense;
-import de.server.eimantas.expensesapp.helpers.ExpenseDatabase;
+import de.server.eimantas.expensesapp.dao.BookingDao;
+import de.server.eimantas.expensesapp.entities.Booking;
+import de.server.eimantas.expensesapp.helpers.BookingDatabase;
 
 public class Listdata extends AppCompatActivity {
 
@@ -32,13 +32,13 @@ public class Listdata extends AppCompatActivity {
     private void pupulateItems() {
 
         Log.i(TAG, "populating stuff");
-        ExpenseDao dao = ExpenseDatabase.get(getApplicationContext()).expenseDao();
+        BookingDao dao = BookingDatabase.get(getApplicationContext()).expenseDao();
 
-        List<Expense> exp = dao.getAll();
+        List<Booking> exp = dao.getAll();
 
         Log.i(TAG, "got " + exp.size() + " expenses");
 
-        for (Expense e : exp) {
+        for (Booking e : exp) {
 
             TextView view = new TextView(getApplicationContext());
             view.setText("id: " + e.getId());

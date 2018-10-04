@@ -14,7 +14,7 @@ import org.jboss.aerogear.android.pipe.rest.multipart.MultipartRequestBuilder;
 import java.io.File;
 import java.net.URL;
 
-import de.server.eimantas.expensesapp.entities.Expense;
+import de.server.eimantas.expensesapp.entities.Booking;
 
 public class KeyCloackHelper {
 
@@ -43,7 +43,7 @@ public class KeyCloackHelper {
             PipeManager.config("kc-upload", RestfulPipeConfiguration.class).module(AuthorizationManager.getModule(MODULE_NAME))
                     .withUrl(new URL(SHOOT_SERVER_URL + "/shoot/rest/photos"))
                     .requestBuilder(new MultipartRequestBuilder())
-                    .forClass(Expense.class);
+                    .forClass(Booking.class);
 
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -79,7 +79,7 @@ public class KeyCloackHelper {
 
     @SuppressWarnings("unchecked")
     public static void upload(final File file, final Callback callback, Activity activity) {
-        PipeManager.getPipe("kc-upload", activity).save(new Expense(), callback);
+        PipeManager.getPipe("kc-upload", activity).save(new Booking(), callback);
     }
 
     public static boolean isConnected() {

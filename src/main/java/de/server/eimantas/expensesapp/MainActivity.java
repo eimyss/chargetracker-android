@@ -2,21 +2,29 @@ package de.server.eimantas.expensesapp;
 
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.TimePicker;
 
 import org.jboss.aerogear.android.core.Callback;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
+import de.server.eimantas.expensesapp.entities.Project;
 import de.server.eimantas.expensesapp.helpers.KeyCloackHelper;
 
 public class MainActivity extends AppCompatActivity {
@@ -25,8 +33,14 @@ public class MainActivity extends AppCompatActivity {
     boolean started = false;
     Button btnTimePicker, btnLogout;
     private static final String TAG = "MyActivity";
+    Spinner spinner;
     private int mLogoutMinute, mLogoutHour, mHour, mMinute, mLoginMinute, mLoginHour;
     public static final String EXTRA_MESSAGE = "de.server.eimantas.expensesapp.MESSAGE";
+    public static final String PROJECT_ID = "de.server.eimantas.expensesapp.PROJECT_ID";
+    public static final String BOOKING_START = "de.server.eimantas.expensesapp.BOOKING_START";
+    public static final String BOOKING_END = "de.server.eimantas.expensesapp.BOOKING_END";
+    private Button btnSend;
+    private Calendar c;
 
 
     @Override
@@ -34,21 +48,58 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         txtTime = (EditText) findViewById(R.id.txtTime);
+        spinner = (Spinner) findViewById(R.id.spinner);
         logoutTime = (EditText) findViewById(R.id.logout_time);
         btnTimePicker = (Button) findViewById(R.id.btnTimePicker);
+        btnSend = (Button) findViewById(R.id.button_send);
         btnLogout = (Button) findViewById(R.id.btnLogout);
+        List<Project> list = new ArrayList<Project>();
+        Project p = new Project(1, "No Project");
+        list.add(p);
+        ArrayAdapter<Project> dataAdapter = new ArrayAdapter<Project>(this,
+                android.R.layout.simple_spinner_item, list) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TextView view = (TextView) super.getView(position, convertView, parent);
+                // Replace text with my own
+                view.setText(getItem(position).getName());
+                return view;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView,
+                                        ViewGroup parent) {
+                TextView label = (TextView) super.getDropDownView(position, convertView, parent);
+                label.setTextColor(Color.RED);
+                label.setText(getItem(position).getName());
+
+                return label;
+            }
+        };
+
+        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(dataAdapter);
         btnLogout.setEnabled(false);
+        btnSend.setEnabled(false);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public void sendMessage(View view) {
         Intent intent = new Intent(this, DisplayMessageActivity.class);
         EditText editText = (EditText) findViewById(R.id.editText);
         String message = editText.getText().toString();
         intent.putExtra(EXTRA_MESSAGE, message);
+        intent.putExtra(PROJECT_ID, ((Project) spinner.getSelectedItem()).getId());
+        intent.putExtra(BOOKING_END, c.toInstant().toEpochMilli());
+        Log.i(TAG,"Setting end date " + c.toString());
+        Calendar cOrig = Calendar.getInstance();
+        cOrig.set(Calendar.HOUR_OF_DAY, mLoginHour);
+        cOrig.set(Calendar.MINUTE, mLoginMinute);
+        Log.i(TAG,"Setting begin date " + cOrig.toString());
+        intent.putExtra(BOOKING_START, cOrig.toInstant().toEpochMilli());
         startActivity(intent);
 
     }
-
 
 
     public void listData(View view) {
@@ -109,22 +160,24 @@ public class MainActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void setLogouTime(View view) {
 
-        final Calendar c = Calendar.getInstance();
-        mLogoutHour = c.get(Calendar.HOUR_OF_DAY);
-        mLogoutMinute = c.get(Calendar.MINUTE);
-
+        c = Calendar.getInstance();
 
         final Calendar cOrig = Calendar.getInstance();
         cOrig.set(Calendar.HOUR_OF_DAY, mLoginHour);
         cOrig.set(Calendar.MINUTE, mLoginMinute);
 
-        long diff = c.getTimeInMillis() - cOrig.getTimeInMillis();
-
-
         long minutes = Duration.between(cOrig.toInstant(), c.toInstant()).toMinutes();
 
         logoutTime.setText("Hours " + minutes / 60 + " Minutes " + (minutes % 60));
+        btnTimePicker.setEnabled(true);
+        btnLogout.setEnabled(false);
+        btnSend.setEnabled(true);
 
+    }
+
+
+    private void deleteDB() {
+        getApplicationContext().deleteDatabase("expenses.db");
     }
 
 }
