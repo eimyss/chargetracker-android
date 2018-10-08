@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
     EditText txtTime, logoutTime;
     boolean started = false;
+    TextView sharedServerText;
     Button btnTimePicker, btnLogout;
     private static final String TAG = "MyActivity";
     Spinner spinner;
@@ -81,6 +82,8 @@ public class MainActivity extends AppCompatActivity {
         spinner.setAdapter(dataAdapter);
         btnLogout.setEnabled(false);
         btnSend.setEnabled(false);
+        deleteDB();
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -91,21 +94,27 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(EXTRA_MESSAGE, message);
         intent.putExtra(PROJECT_ID, ((Project) spinner.getSelectedItem()).getId());
         intent.putExtra(BOOKING_END, c.toInstant().toEpochMilli());
-        Log.i(TAG,"Setting end date " + c.toString());
+        Log.i(TAG, "Setting end date " + c.toString());
         Calendar cOrig = Calendar.getInstance();
         cOrig.set(Calendar.HOUR_OF_DAY, mLoginHour);
         cOrig.set(Calendar.MINUTE, mLoginMinute);
-        Log.i(TAG,"Setting begin date " + cOrig.toString());
+        Log.i(TAG, "Setting begin date " + cOrig.toString());
         intent.putExtra(BOOKING_START, cOrig.toInstant().toEpochMilli());
         startActivity(intent);
 
     }
 
-
     public void listData(View view) {
         Intent intent = new Intent(this, Listdata.class);
         startActivity(intent);
     }
+
+
+    public void settingsActivity(View view) {
+        Intent intent = new Intent(this, SettingsActvity.class);
+        startActivity(intent);
+    }
+
 
     public void startAuth() {
         Log.v(TAG, "starting auth");

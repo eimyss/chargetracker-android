@@ -20,6 +20,17 @@ public class Booking {
     @ColumnInfo(name = "project_id")
     private int project_id;
 
+    public int getServerBookingId() {
+        return serverBookingId;
+    }
+
+    public void setServerBookingId(int serverBookingId) {
+        this.serverBookingId = serverBookingId;
+    }
+
+    @ColumnInfo(name = "server_booking_id")
+    private int serverBookingId;
+
 
     public LocalDateTime getStartdate() {
         return startdate;

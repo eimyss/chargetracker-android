@@ -1,5 +1,11 @@
 <resources>
-    <string name="app_name">Expenses App</string>
+    <string name="app_name">Booking App</string>
     <string name="edit_message">Enter a message</string>
     <string name="button_send">Send</string>
+    <string name="shared_pref_key">shared_refs</string>
+    <string name="pref_server">pref_server_key</string>
+    <string name="default_server">localhost</string>
+    <string name="pref_server_port">pref_port</string>
+    <string name="pref_user">pref_user</string>
+    <string name="pref_pass">pref_pass</string>
 </resources>
