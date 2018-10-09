@@ -11,19 +11,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import de.server.eimantas.expensesapp.helpers.KeyCloackHelper;
 
 public class SettingsActvity extends AppCompatActivity {
@@ -77,7 +64,7 @@ public class SettingsActvity extends AppCompatActivity {
 
         // TODO parse json
         Log.i(TAG, "entity received: " + message);
-        Toast.makeText(getApplicationContext(), "success", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "success: "+ message, Toast.LENGTH_SHORT).show();
         testConnectionBtn.setText("Test Connection");
 
     }
@@ -86,7 +73,7 @@ public class SettingsActvity extends AppCompatActivity {
 
         // TODO parse json
         Log.i(TAG, "error entity received: " + message);
-        Toast.makeText(getApplicationContext(), "error " + message , Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "error " + message, Toast.LENGTH_SHORT).show();
         testConnectionBtn.setText("Test Connection");
     }
 
@@ -105,30 +92,7 @@ public class SettingsActvity extends AppCompatActivity {
 
         protected String doInBackground(String... urls) {
             try {
-
-                KeyCloackHelper.login(getApplicationContext());
-                SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(getString(R.string.shared_pref_key), Context.MODE_PRIVATE);
-                HttpClient client = new DefaultHttpClient();
-                String url = "http://" + sharedPref.getString(getString(R.string.pref_server), "") +
-                        ":" + sharedPref.getString(getString(R.string.pref_server_port), "") +
-                        "/auth/realms/expenses/protocol/openid-connect/token";
-                Log.i(TAG,"test connection to URL: " + url);
-
-                HttpPost request = new HttpPost(url);
-
-                List<NameValuePair> pairs = new ArrayList<NameValuePair>();
-                pairs.add(new BasicNameValuePair("client_id", "expenses-app"));
-                pairs.add(new BasicNameValuePair("username", sharedPref.getString(getString(R.string.pref_user), "")));
-                pairs.add(new BasicNameValuePair("password", sharedPref.getString(getString(R.string.pref_pass), "")));
-                pairs.add(new BasicNameValuePair("grant_type", "password"));
-                request.setEntity(new UrlEncodedFormEntity(pairs));
-                HttpResponse resp = client.execute(request);
-
-                String response = IOUtils.toString(resp.getEntity().getContent());
-
-                Log.i(TAG, "entity content:" + response);
-                //  infotext.setText(response);
-                return response;
+                return KeyCloackHelper.login(getApplicationContext());
             } catch (Exception e) {
                 this.exception = e;
                 Toast.makeText(getApplicationContext(), "error", Toast.LENGTH_SHORT).show();
