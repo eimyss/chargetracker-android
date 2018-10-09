@@ -24,6 +24,8 @@ import org.apache.http.message.BasicNameValuePair;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.server.eimantas.expensesapp.helpers.KeyCloackHelper;
+
 public class SettingsActvity extends AppCompatActivity {
 
     private EditText servertext;
@@ -103,6 +105,8 @@ public class SettingsActvity extends AppCompatActivity {
 
         protected String doInBackground(String... urls) {
             try {
+
+                KeyCloackHelper.login(getApplicationContext());
                 SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(getString(R.string.shared_pref_key), Context.MODE_PRIVATE);
                 HttpClient client = new DefaultHttpClient();
                 String url = "http://" + sharedPref.getString(getString(R.string.pref_server), "") +

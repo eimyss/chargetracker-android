@@ -17,15 +17,12 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
-import org.jboss.aerogear.android.core.Callback;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 import de.server.eimantas.expensesapp.entities.Project;
-import de.server.eimantas.expensesapp.helpers.KeyCloackHelper;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -115,31 +112,6 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-
-    public void startAuth() {
-        Log.v(TAG, "starting auth");
-        if (!KeyCloackHelper.isConnected()) {
-
-            KeyCloackHelper.connect(MainActivity.this, new Callback() {
-                        @Override
-                        public void onSuccess(Object o) {
-                            //   sendPhoto(UploadService.PROVIDERS.KEYCLOAK);
-                            txtTime.setText("okay");
-                        }
-
-                        @Override
-                        public void onFailure(Exception e) {
-                            Log.e(TAG, e.getMessage(), e);
-                            txtTime.setText(" not okay " + e.getMessage());
-                        }
-                    }
-            );
-
-        } else {
-            // sendPhoto(UploadService.PROVIDERS.KEYCLOAK);
-            txtTime.setText("else");
-        }
-    }
 
     public void selectTimePicker(View view) {
 

@@ -1,89 +1,73 @@
 package de.server.eimantas.expensesapp.helpers;
 
-import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.util.Log;
 
-import org.jboss.aerogear.android.authorization.AuthorizationManager;
-import org.jboss.aerogear.android.authorization.AuthzModule;
-import org.jboss.aerogear.android.authorization.oauth2.OAuth2AuthorizationConfiguration;
-import org.jboss.aerogear.android.authorization.oauth2.OAuthWebViewDialog;
-import org.jboss.aerogear.android.core.Callback;
-import org.jboss.aerogear.android.pipe.PipeManager;
-import org.jboss.aerogear.android.pipe.rest.RestfulPipeConfiguration;
-import org.jboss.aerogear.android.pipe.rest.multipart.MultipartRequestBuilder;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.io.File;
-import java.net.URL;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-import de.server.eimantas.expensesapp.entities.Booking;
+import de.server.eimantas.expensesapp.R;
 
 public class KeyCloackHelper {
 
-    private static final String SHOOT_SERVER_URL = "http://192.168.123.157:8180";
-    private static final String AUTHZ_URL = SHOOT_SERVER_URL + "/auth";
-    private static final String AUTHZ_ENDPOINT = "/realms/expenses/protocol/openid-connect/auth";
-    private static final String ACCESS_TOKEN_ENDPOINT = "/realms/expenses/protocol/openid-connect/token";
-    private static final String REFRESH_TOKEN_ENDPOINT = "/realms/expenses/protocol/openid-connect/token";
-    private static final String AUTHZ_ACCOOUNT_ID = "test";
-    private static final String AUTHZ_CLIENT_ID = "expenses-app";
-    private static final String AUTHZ_REDIRECT_URL = "http://oauth2callback";
-    private static final String MODULE_NAME = "KeyCloakAuthz";
+    private static final String TAG = "KeycloackHelper";
 
-    static {
-        try {
-            AuthorizationManager.config(MODULE_NAME, OAuth2AuthorizationConfiguration.class)
-                    .setBaseURL(new URL(AUTHZ_URL))
-                    .setAuthzEndpoint(AUTHZ_ENDPOINT)
-                    .setAccessTokenEndpoint(ACCESS_TOKEN_ENDPOINT)
-                    .setRefreshEndpoint(REFRESH_TOKEN_ENDPOINT)
-                    .setAccountId(AUTHZ_ACCOOUNT_ID)
-                    .setClientId(AUTHZ_CLIENT_ID)
-                    .setRedirectURL(AUTHZ_REDIRECT_URL)
-                    .asModule();
+    public static String login(Context appContext) throws IOException, JSONException {
 
-            PipeManager.config("kc-upload", RestfulPipeConfiguration.class).module(AuthorizationManager.getModule(MODULE_NAME))
-                    .withUrl(new URL(SHOOT_SERVER_URL + "/shoot/rest/photos"))
-                    .requestBuilder(new MultipartRequestBuilder())
-                    .forClass(Booking.class);
+        SharedPreferences sharedPref = appContext.getSharedPreferences(appContext.getString(R.string.shared_pref_key), Context.MODE_PRIVATE);
+        HttpClient client = new DefaultHttpClient();
+        String url = "http://" + sharedPref.getString(appContext.getString(R.string.pref_server), "") +
+                ":" + sharedPref.getString(appContext.getString(R.string.pref_server_port), "") +
+                "/auth/realms/expenses/protocol/openid-connect/token";
+        Log.i(TAG, "test connection to URL: " + url);
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        HttpPost request = new HttpPost(url);
+
+        List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+        pairs.add(new BasicNameValuePair("client_id", "expenses-app"));
+        pairs.add(new BasicNameValuePair("username", sharedPref.getString(appContext.getString(R.string.pref_user), "")));
+        pairs.add(new BasicNameValuePair("password", sharedPref.getString(appContext.getString(R.string.pref_pass), "")));
+        pairs.add(new BasicNameValuePair("grant_type", "password"));
+        request.setEntity(new UrlEncodedFormEntity(pairs));
+        HttpResponse resp = client.execute(request);
+
+        String response = IOUtils.toString(resp.getEntity().getContent());
+        Log.d(TAG, "Got response " + response);
+
+        String accessToken = getValueFromToken("access_token", response);
+        String refreshToken = getValueFromToken("refresh_token", response);
+
+        Log.i(TAG, "saving values for further use");
+
+
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(appContext.getString(R.string.access_token), accessToken);
+        editor.putString(appContext.getString(R.string.refresh_token), refreshToken);
+        editor.commit();
+
+        // should I return true / false?
+        return getValueFromToken("session_state", response);
     }
 
-    public static void connect(final Activity activity, final Callback callback) {
-        try {
-            final AuthzModule authzModule = AuthorizationManager.getModule(MODULE_NAME);
 
-            authzModule.requestAccess(activity, new Callback<String>() {
-                @SuppressWarnings("unchecked")
-                @Override
-                public void onSuccess(String s) {
-                    callback.onSuccess(s);
-                }
+    public static String getValueFromToken(String name, String token) throws IOException, JSONException {
 
-                @Override
-                public void onFailure(Exception e) {
-                    if (!e.getMessage().matches(OAuthWebViewDialog.OAuthReceiver.DISMISS_ERROR)) {
-                        authzModule.deleteAccount();
-                    }
-                    callback.onFailure(e);
-                }
-            });
+        JSONObject parser = new JSONObject(token);
+        return parser.getString(name);
 
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public static void upload(final File file, final Callback callback, Activity activity) {
-        PipeManager.getPipe("kc-upload", activity).save(new Booking(), callback);
-    }
-
-    public static boolean isConnected() {
-        return AuthorizationManager.getModule(MODULE_NAME).isAuthorized();
     }
 
 }
