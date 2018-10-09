@@ -21,6 +21,8 @@ public class SettingsActvity extends AppCompatActivity {
     private EditText passwordTxt;
     private static final String TAG = "SettingsActivity";
     private Button testConnectionBtn;
+    private EditText gateway_port_txt;
+    private EditText gateway_server_txt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +34,8 @@ public class SettingsActvity extends AppCompatActivity {
         usernametext = (EditText) findViewById(R.id.usernametext);
         testConnectionBtn = (Button) findViewById(R.id.testConnectionBtn);
         passwordTxt = (EditText) findViewById(R.id.passwordTxt);
+        gateway_port_txt = (EditText) findViewById(R.id.gateway_port_txt);
+        gateway_server_txt = (EditText) findViewById(R.id.gateway_server_txt);
         readValuesFromPref();
 
     }
@@ -39,8 +43,10 @@ public class SettingsActvity extends AppCompatActivity {
     private void readValuesFromPref() {
 
         SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(getString(R.string.shared_pref_key), Context.MODE_PRIVATE);
-        servertext.setText(sharedPref.getString(getString(R.string.pref_server), ""));
-        portText.setText(sharedPref.getString(getString(R.string.pref_server_port), ""));
+        servertext.setText(sharedPref.getString(getString(R.string.pref_auth_server), ""));
+        portText.setText(sharedPref.getString(getString(R.string.pref_auth_server_port), ""));
+        gateway_server_txt.setText(sharedPref.getString(getString(R.string.pref_gateway_server), ""));
+        gateway_port_txt.setText(sharedPref.getString(getString(R.string.pref_gateway_server_port), ""));
         usernametext.setText(sharedPref.getString(getString(R.string.pref_user), ""));
         passwordTxt.setText(sharedPref.getString(getString(R.string.pref_pass), ""));
     }
@@ -50,8 +56,10 @@ public class SettingsActvity extends AppCompatActivity {
 
         SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(getString(R.string.shared_pref_key), Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString(getString(R.string.pref_server), String.valueOf(servertext.getText()));
-        editor.putString(getString(R.string.pref_server_port), String.valueOf(portText.getText()));
+        editor.putString(getString(R.string.pref_auth_server), String.valueOf(servertext.getText()));
+        editor.putString(getString(R.string.pref_auth_server_port), String.valueOf(portText.getText()));
+        editor.putString(getString(R.string.pref_gateway_server), String.valueOf(gateway_server_txt.getText()));
+        editor.putString(getString(R.string.pref_gateway_server_port), String.valueOf(gateway_port_txt.getText()));
         editor.putString(getString(R.string.pref_user), String.valueOf(usernametext.getText()));
         editor.putString(getString(R.string.pref_pass), String.valueOf(passwordTxt.getText()));
         editor.commit();
@@ -64,7 +72,7 @@ public class SettingsActvity extends AppCompatActivity {
 
         // TODO parse json
         Log.i(TAG, "entity received: " + message);
-        Toast.makeText(getApplicationContext(), "success: "+ message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "success: " + message, Toast.LENGTH_SHORT).show();
         testConnectionBtn.setText("Test Connection");
 
     }

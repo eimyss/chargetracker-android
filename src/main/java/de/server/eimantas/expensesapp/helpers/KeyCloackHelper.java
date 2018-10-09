@@ -29,8 +29,8 @@ public class KeyCloackHelper {
 
         SharedPreferences sharedPref = appContext.getSharedPreferences(appContext.getString(R.string.shared_pref_key), Context.MODE_PRIVATE);
         HttpClient client = new DefaultHttpClient();
-        String url = "http://" + sharedPref.getString(appContext.getString(R.string.pref_server), "") +
-                ":" + sharedPref.getString(appContext.getString(R.string.pref_server_port), "") +
+        String url = "http://" + sharedPref.getString(appContext.getString(R.string.pref_auth_server), "") +
+                ":" + sharedPref.getString(appContext.getString(R.string.pref_auth_server_port), "") +
                 "/auth/realms/expenses/protocol/openid-connect/token";
         Log.i(TAG, "test connection to URL: " + url);
 
