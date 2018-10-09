@@ -18,8 +18,10 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 import de.server.eimantas.expensesapp.entities.Project;
@@ -38,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
     public static final String BOOKING_START = "de.server.eimantas.expensesapp.BOOKING_START";
     public static final String BOOKING_END = "de.server.eimantas.expensesapp.BOOKING_END";
     private Button btnSend;
-    private Calendar c;
 
 
     @Override
@@ -90,13 +91,11 @@ public class MainActivity extends AppCompatActivity {
         String message = editText.getText().toString();
         intent.putExtra(EXTRA_MESSAGE, message);
         intent.putExtra(PROJECT_ID, ((Project) spinner.getSelectedItem()).getId());
-        intent.putExtra(BOOKING_END, c.toInstant().toEpochMilli());
-        Log.i(TAG, "Setting end date " + c.toString());
-        Calendar cOrig = Calendar.getInstance();
-        cOrig.set(Calendar.HOUR_OF_DAY, mLoginHour);
-        cOrig.set(Calendar.MINUTE, mLoginMinute);
-        Log.i(TAG, "Setting begin date " + cOrig.toString());
-        intent.putExtra(BOOKING_START, cOrig.toInstant().toEpochMilli());
+        intent.putExtra(BOOKING_END, LocalDateTime.now().toInstant(OffsetDateTime.now().getOffset()).toEpochMilli());
+        LocalDateTime loginTime = LocalDateTime.now().with(LocalTime.of(mLoginHour, mLoginMinute));
+        Log.i(TAG, "value for minute: " + mLoginMinute + " and hour: " + mLoginHour);
+        Log.i(TAG, "Setting begin date " + loginTime.toString());
+        intent.putExtra(BOOKING_START, loginTime.toInstant(OffsetDateTime.now().getOffset()).toEpochMilli());
         startActivity(intent);
 
     }
@@ -113,11 +112,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public void selectTimePicker(View view) {
-
-        final Calendar c = Calendar.getInstance();
-        mHour = c.get(Calendar.HOUR_OF_DAY);
-        mMinute = c.get(Calendar.MINUTE);
 
         // Launch Time Picker Dialog
         TimePickerDialog timePickerDialog = new TimePickerDialog(this, 0,
@@ -141,13 +137,8 @@ public class MainActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void setLogouTime(View view) {
 
-        c = Calendar.getInstance();
-
-        final Calendar cOrig = Calendar.getInstance();
-        cOrig.set(Calendar.HOUR_OF_DAY, mLoginHour);
-        cOrig.set(Calendar.MINUTE, mLoginMinute);
-
-        long minutes = Duration.between(cOrig.toInstant(), c.toInstant()).toMinutes();
+        LocalDateTime loginTime = LocalDateTime.now().with(LocalTime.of(mLoginHour, mLoginMinute));
+        long minutes = Duration.between(loginTime, LocalDateTime.now()).toMinutes();
 
         logoutTime.setText("Hours " + minutes / 60 + " Minutes " + (minutes % 60));
         btnTimePicker.setEnabled(true);
