@@ -11,6 +11,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+
 import de.server.eimantas.expensesapp.helpers.KeyCloackHelper;
 
 public class SettingsActvity extends AppCompatActivity {
@@ -90,22 +98,54 @@ public class SettingsActvity extends AppCompatActivity {
         Log.i(TAG, "starting request");
         Toast.makeText(getApplicationContext(), "testing", Toast.LENGTH_SHORT).show();
         testConnectionBtn.setText("Testing....");
-        new TestConnectionTask().execute("test");
+        new TestConnectionTask().execute();
 
     }
 
-    class TestConnectionTask extends AsyncTask<String, Void, String> {
+    class TestConnectionTask extends AsyncTask<Void, Void, Void> {
 
         private Exception exception;
 
-        protected String doInBackground(String... urls) {
+        protected Void doInBackground(Void... voids) {
             try {
-                return KeyCloackHelper.login(getApplicationContext());
+
+                Response.Listener listener = new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.i("KEYCLOACK-HANDLER", response);
+                        Log.d(TAG, "Got response " + response);
+                        try {
+                            final SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(getApplicationContext().getString(R.string.shared_pref_key), Context.MODE_PRIVATE);
+                            String accessToken = getValueFromToken("access_token", response);
+                            String refreshToken = getValueFromToken("refresh_token", response);
+                            Log.i(TAG, "saving values for further use");
+                            SharedPreferences.Editor editor = sharedPref.edit();
+                            editor.putString(getApplicationContext().getString(R.string.access_token), accessToken);
+                            editor.putString(getApplicationContext().getString(R.string.refresh_token), refreshToken);
+                            editor.commit();
+                            setSuccess(getValueFromToken("session_state", response));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+
+                Response.ErrorListener errorListener = new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e("VOLLEY", error.toString());
+                        setError(error.toString());
+                    }
+                };
+
+                KeyCloackHelper.login(getApplicationContext(), listener, errorListener);
             } catch (Exception e) {
                 this.exception = e;
                 Toast.makeText(getApplicationContext(), "error", Toast.LENGTH_SHORT).show();
-                return e.getMessage();
             }
+            return null;
         }
 
         protected void onPostExecute(String response) {
@@ -117,5 +157,12 @@ public class SettingsActvity extends AppCompatActivity {
             }
 
         }
+    }
+
+    public static String getValueFromToken(String name, String token) throws IOException, JSONException {
+
+        JSONObject parser = new JSONObject(token);
+        return parser.getString(name);
+
     }
 }
