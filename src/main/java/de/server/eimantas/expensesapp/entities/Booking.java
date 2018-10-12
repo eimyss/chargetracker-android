@@ -18,7 +18,7 @@ public class Booking {
     @ColumnInfo(name = "end")
     private LocalDateTime endDate;
     @ColumnInfo(name = "project_id")
-    private int project_id;
+    private int projectId;
 
     public int getServerBookingId() {
         return serverBookingId;
@@ -50,7 +50,7 @@ public class Booking {
         this.name = name;
         this.startdate = startdate;
         this.endDate = endDate;
-        this.project_id = project_id;
+        this.projectId = project_id;
     }
 
     public Booking() {
@@ -61,12 +61,12 @@ public class Booking {
         this.name = name;
     }
 
-    public int getProject_id() {
-        return project_id;
+    public int getProjectId() {
+        return projectId;
     }
 
-    public void setProject_id(int project_id) {
-        this.project_id = project_id;
+    public void setProjectId(int project_id) {
+        this.projectId = project_id;
     }
 
 

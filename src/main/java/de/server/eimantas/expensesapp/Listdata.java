@@ -47,8 +47,10 @@ public class Listdata extends AppCompatActivity {
             TextView view2 = new TextView(getApplicationContext());
             view2.setText("name: " + e.getName());
 
-            //TextView view3 = new TextView(getApplicationContext());
-           // view.setText(e.toString());
+
+            TextView view3 = new TextView(getApplicationContext());
+            view3.setText("DB ID: " + e.getServerBookingId());
+
 
             TableRow row = new TableRow(getApplicationContext());
             TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT);
@@ -57,7 +59,7 @@ public class Listdata extends AppCompatActivity {
 
             row.addView(view);
             row.addView(view2);
-            //row.addView(view3);
+            row.addView(view3);
 
             table.addView(row);
         }

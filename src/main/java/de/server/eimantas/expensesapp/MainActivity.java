@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(EXTRA_MESSAGE, message);
         intent.putExtra(PROJECT_ID, ((Project) spinner.getSelectedItem()).getId());
         intent.putExtra(BOOKING_END, LocalDateTime.now().toInstant(OffsetDateTime.now().getOffset()).toEpochMilli());
-        LocalDateTime loginTime = LocalDateTime.now().with(LocalTime.of(mLoginHour, mLoginMinute));
+        LocalDateTime loginTime = LocalDateTime.now().with(LocalTime.of(mLoginHour, mLoginMinute,1,1));
         Log.i(TAG, "value for minute: " + mLoginMinute + " and hour: " + mLoginHour);
         Log.i(TAG, "Setting begin date " + loginTime.toString());
         intent.putExtra(BOOKING_START, loginTime.toInstant(OffsetDateTime.now().getOffset()).toEpochMilli());

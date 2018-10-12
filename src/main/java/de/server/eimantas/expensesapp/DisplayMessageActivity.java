@@ -12,10 +12,19 @@ import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 
+import java.lang.reflect.Type;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 import de.server.eimantas.expensesapp.entities.Booking;
 import de.server.eimantas.expensesapp.helpers.BookingDatabase;
@@ -31,10 +40,11 @@ public class DisplayMessageActivity extends AppCompatActivity {
     private static final String TAG = DisplayMessageActivity.class.getSimpleName();
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    void saveStuff(Booking booking) {
+    Booking saveStuff(Booking booking) {
         Log.i(TAG, "Saving Booking");
         long id = BookingDatabase.get(getApplicationContext()).expenseDao().insert(booking);
         Log.i(TAG, "saved.: " + booking.toString() + " witj id: " + id);
+        return BookingDatabase.get(getApplicationContext()).expenseDao().findById(id);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -58,15 +68,23 @@ public class DisplayMessageActivity extends AppCompatActivity {
         // Capture the layout's TextView and set the string as its text
         TextView textView = findViewById(R.id.textView);
         textView.setText(message);
-        saveStuff(booking);
-        new SaveBookingTask().execute(booking);
+        Booking saved = saveStuff(booking);
+        new SaveBookingTask().execute(saved);
 
     }
 
-    void setSuccess(String message) {
-        Log.i(TAG, "entity received: " + message);
-        Toast.makeText(getApplicationContext(), "success: " + message, Toast.LENGTH_SHORT).show();
-
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    void setSuccess(String booking) {
+        Log.i(TAG, "entity received: " + booking);
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new JsonDeserializer<LocalDateTime>() {
+            @Override
+            public LocalDateTime deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+                return LocalDateTime.parse(json.getAsJsonPrimitive().getAsString(),formatter);
+            }
+        }).create();
+        Booking received = gson.fromJson(booking,Booking.class);
+        new UpdateBookingTask().execute(received);
     }
 
     void setError(String message) {
@@ -84,6 +102,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
         protected Void doInBackground(Booking... bookings) {
             try {
                 Response.Listener listener = new Response.Listener<String>() {
+                    @RequiresApi(api = Build.VERSION_CODES.O)
                     @Override
                     public void onResponse(String response) {
                         Log.d(TAG, "Got response " + response);
@@ -107,6 +126,21 @@ public class DisplayMessageActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "error", Toast.LENGTH_SHORT).show();
             }
             return null;
+        }
+
+    }
+
+    class UpdateBookingTask extends AsyncTask<Booking, Void, Integer> {
+
+        protected Integer doInBackground(Booking... bookings) {
+            Log.i(TAG, "Updating bookings to set server backend id");
+            Integer rows = BookingDatabase.get(getApplicationContext()).expenseDao().updateBookings(bookings);
+            return rows;
+        }
+
+        protected void onPostExecute(Integer numOfRows) {
+            Log.i(TAG, "Done updateing stuff " + numOfRows);
+            Toast.makeText(getApplicationContext(), "Entity Saved in Backends Anzahl : " + numOfRows, Toast.LENGTH_LONG).show();
         }
 
     }
