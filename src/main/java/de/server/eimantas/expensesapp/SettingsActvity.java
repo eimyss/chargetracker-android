@@ -15,10 +15,10 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 
+import de.server.eimantas.expensesapp.helpers.JsonUtils;
 import de.server.eimantas.expensesapp.helpers.KeyCloackHelper;
 
 public class SettingsActvity extends AppCompatActivity {
@@ -116,14 +116,14 @@ public class SettingsActvity extends AppCompatActivity {
                         Log.d(TAG, "Got response " + response);
                         try {
                             final SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(getApplicationContext().getString(R.string.shared_pref_key), Context.MODE_PRIVATE);
-                            String accessToken = getValueFromToken("access_token", response);
-                            String refreshToken = getValueFromToken("refresh_token", response);
+                            String accessToken = JsonUtils.getValueFromToken("access_token", response);
+                            String refreshToken = JsonUtils.getValueFromToken("refresh_token", response);
                             Log.i(TAG, "saving values for further use");
                             SharedPreferences.Editor editor = sharedPref.edit();
                             editor.putString(getApplicationContext().getString(R.string.access_token), accessToken);
                             editor.putString(getApplicationContext().getString(R.string.refresh_token), refreshToken);
                             editor.commit();
-                            setSuccess(getValueFromToken("session_state", response));
+                            setSuccess(JsonUtils.getValueFromToken("session_state", response));
                         } catch (IOException e) {
                             e.printStackTrace();
                         } catch (JSONException e) {
@@ -159,10 +159,5 @@ public class SettingsActvity extends AppCompatActivity {
         }
     }
 
-    public static String getValueFromToken(String name, String token) throws IOException, JSONException {
 
-        JSONObject parser = new JSONObject(token);
-        return parser.getString(name);
-
-    }
 }

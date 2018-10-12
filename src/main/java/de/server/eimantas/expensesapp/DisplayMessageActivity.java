@@ -10,6 +10,9 @@ import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -61,8 +64,6 @@ public class DisplayMessageActivity extends AppCompatActivity {
     }
 
     void setSuccess(String message) {
-
-        // TODO parse json
         Log.i(TAG, "entity received: " + message);
         Toast.makeText(getApplicationContext(), "success: " + message, Toast.LENGTH_SHORT).show();
 
@@ -76,30 +77,38 @@ public class DisplayMessageActivity extends AppCompatActivity {
     }
 
 
-    class SaveBookingTask extends AsyncTask<Booking, Void, String> {
+    class SaveBookingTask extends AsyncTask<Booking, Void, Void> {
 
         private Exception exception;
 
-
-        protected String doInBackground(Booking... bookings) {
+        protected Void doInBackground(Booking... bookings) {
             try {
-                return GatewayService.uploadBooking(bookings, getApplicationContext());
+                Response.Listener listener = new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.d(TAG, "Got response " + response);
+                        setSuccess(response);
+                    }
+                };
+                Response.ErrorListener errorListener = new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e("VOLLEY", error.toString());
+                        setError(error.toString());
+                    }
+                };
+
+                GatewayService gw = new GatewayService(getApplicationContext(), listener, errorListener);
+                gw.uploadBooking(bookings);
+
+
             } catch (Exception e) {
                 this.exception = e;
                 Toast.makeText(getApplicationContext(), "error", Toast.LENGTH_SHORT).show();
-                return e.getMessage();
             }
+            return null;
         }
 
-        protected void onPostExecute(String response) {
-            //  infotext.setText(response);
-            if (exception == null) {
-                setSuccess(response);
-            } else {
-                setError(exception.getMessage());
-            }
-
-        }
     }
 
 }

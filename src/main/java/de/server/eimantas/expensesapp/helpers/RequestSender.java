@@ -21,7 +21,6 @@ import java.util.Map;
 
 public class RequestSender {
 
-
     private final Context context;
 
     public RequestSender(Context ctx) {
@@ -56,6 +55,56 @@ public class RequestSender {
                 @Override
                 protected Map<String, String> getParams() throws AuthFailureError {
                     return params;
+                }
+
+                @Override
+                protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                    try {
+                        Log.i("VOLLEY", "NETWORK RESPONSE: " + new String(
+                                response.data,
+                                HttpHeaderParser.parseCharset(response.headers)));
+                        return Response.success(new String(
+                                response.data,
+                                HttpHeaderParser.parseCharset(response.headers)), HttpHeaderParser.parseCacheHeaders(response));
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                        return Response.success(e.getMessage(), HttpHeaderParser.parseCacheHeaders(response));
+                    }
+                }
+            };
+
+            mRequestQueue.add(stringRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+
+    public void sendRequest(String url, final Map<String, String> headers, final String body, Response.Listener listener, Response.ErrorListener errorListener) {
+
+        final String[] message = {""};
+
+        // Start the queue
+        mRequestQueue.start();
+        try {
+
+            StringRequest stringRequest = new StringRequest(Request.Method.POST, url, listener, errorListener) {
+                @Override
+                public String getBodyContentType() {
+                    return "application/json; charset=UTF-8";
+                }
+
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    return headers;
+                }
+
+
+                @Override
+                public byte[] getBody() throws AuthFailureError {
+                    return body.getBytes();
                 }
 
                 @Override

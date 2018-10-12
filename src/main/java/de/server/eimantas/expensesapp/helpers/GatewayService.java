@@ -2,16 +2,24 @@ package de.server.eimantas.expensesapp.helpers;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 
 import de.server.eimantas.expensesapp.R;
 import de.server.eimantas.expensesapp.entities.Booking;
+import de.server.eimantas.expensesapp.helpers.serializers.LocalDateTimeAdapter;
 
 public class GatewayService {
 
@@ -19,24 +27,77 @@ public class GatewayService {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_TOKEN_TYPE = "Bearer";
-
-    public static String uploadBooking(Booking[] booking, Context applicationContext) throws IOException, JSONException {
-
-        KeyCloackHelper.login(applicationContext, null,null);
-
-        SharedPreferences sharedPref = applicationContext.getSharedPreferences(applicationContext.getString(R.string.shared_pref_key), Context.MODE_PRIVATE);
-        //   HttpClient client = new DefaultHttpClient();
-        String url = "http://" + sharedPref.getString(applicationContext.getString(R.string.pref_gateway_server), "") +
-                ":" + sharedPref.getString(applicationContext.getString(R.string.pref_gateway_server_port), "") +
-                "/booking/add";
-        Log.i(TAG, "test connection to URL: " + url);
+    private final Context ctx;
+    private final Response.ErrorListener errorListener;
+    private final Response.Listener listener;
 
 
-        Gson gson = new Gson();
-        String json = gson.toJson(booking);
+    public GatewayService(final Context applicationContext, final Response.Listener listener, final Response.ErrorListener errorListener) {
+        this.ctx = applicationContext;
+        this.listener = listener;
+        this.errorListener = errorListener;
+    }
+
+
+    public String uploadBooking(final Booking[] booking) throws IOException, JSONException {
+
+        Response.Listener loginListener = new Response.Listener<String>() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onResponse(String response) {
+                // hier login war okay
+                Log.i(TAG, "Gateway response is: " + response);
+                try {
+                    String token = JsonUtils.getValueFromToken("access_token", response);
+
+                    Log.i(TAG, "Gateway Token is: " + token);
+                    Gson gson = new GsonBuilder()
+                            .setPrettyPrinting()
+                            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                            .create();
+                   String body = gson.toJson(booking);
+
+                    Log.i(TAG, "Request body: " + body);
+                    uploadDto(token, body);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        Response.ErrorListener loginErrorListener = new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e("VOLLEY", error.toString());
+                // just delegate it...
+                errorListener.onErrorResponse(error);
+            }
+        };
+
+        KeyCloackHelper.login(ctx, loginListener, loginErrorListener);
 
 
         return "";
+
+    }
+
+    private void uploadDto(String token, String body) {
+
+        SharedPreferences sharedPref = ctx.getSharedPreferences(ctx.getString(R.string.shared_pref_key), Context.MODE_PRIVATE);
+        //   HttpClient client = new DefaultHttpClient();
+        String url = "http://" + sharedPref.getString(ctx.getString(R.string.pref_gateway_server), "") +
+                ":" + sharedPref.getString(ctx.getString(R.string.pref_gateway_server_port), "") +
+                "/bookings/save";
+        Log.i(TAG, "test connection to URL: " + url);
+
+
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put(AUTHORIZATION_HEADER, BEARER_TOKEN_TYPE + " " + token);
+
+        RequestSender sender = new RequestSender(ctx);
+        sender.sendRequest(url, headers, body, listener, errorListener);
 
     }
 
