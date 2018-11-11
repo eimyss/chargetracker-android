@@ -22,14 +22,14 @@ public class KeyCloackHelper {
 
         final SharedPreferences sharedPref = appContext.getSharedPreferences(appContext.getString(R.string.shared_pref_key), Context.MODE_PRIVATE);
         //ttpClient client = new DefaultHttpClient();
-        String url = "http://" + sharedPref.getString(appContext.getString(R.string.pref_auth_server), "") +
+        String url = "https://" + sharedPref.getString(appContext.getString(R.string.pref_auth_server), "") +
                 ":" + sharedPref.getString(appContext.getString(R.string.pref_auth_server_port), "") +
-                "/auth/realms/expenses/protocol/openid-connect/token";
+                "/auth/realms/expenses-dev/protocol/openid-connect/token";
         Log.i(TAG, "test connection to URL: " + url);
 
         HashMap<String, String> params = new HashMap<>();
 
-        params.put("client_id", "expenses-app");
+        params.put("client_id", "expenses-app-dev");
         params.put("username", sharedPref.getString(appContext.getString(R.string.pref_user), ""));
         params.put("password", sharedPref.getString(appContext.getString(R.string.pref_pass), ""));
         params.put("grant_type", "password");
