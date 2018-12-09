@@ -16,9 +16,11 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 
 import de.server.eimantas.expensesapp.R;
 import de.server.eimantas.expensesapp.entities.Booking;
+import de.server.eimantas.expensesapp.entities.Location;
 import de.server.eimantas.expensesapp.helpers.serializers.LocalDateTimeAdapter;
 
 public class GatewayService {
@@ -87,7 +89,7 @@ public class GatewayService {
 
         SharedPreferences sharedPref = ctx.getSharedPreferences(ctx.getString(R.string.shared_pref_key), Context.MODE_PRIVATE);
         //   HttpClient client = new DefaultHttpClient();
-        String url = "http://" + sharedPref.getString(ctx.getString(R.string.pref_gateway_server), "") +
+        String url = "https://" + sharedPref.getString(ctx.getString(R.string.pref_gateway_server), "") +
                 ":" + sharedPref.getString(ctx.getString(R.string.pref_gateway_server_port), "") +
                 "/bookings/save";
         Log.i(TAG, "test connection to URL: " + url);
@@ -99,6 +101,50 @@ public class GatewayService {
         RequestSender sender = new RequestSender(ctx);
         sender.sendRequest(url, headers, body, listener, errorListener);
 
+    }
+
+    public void getLocationList() throws IOException, JSONException {
+        Response.Listener loginListener = new Response.Listener<String>() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onResponse(String response) {
+                // hier login war okay
+                Log.i(TAG, "Gateway response is: " + response);
+                try {
+                    String token = JsonUtils.getValueFromToken("access_token", response);
+                    Log.i(TAG, "Gateway Token is: " + token);
+                    getLocationsFromServer(token);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        Response.ErrorListener loginErrorListener = new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e("VOLLEY", error.toString());
+                errorListener.onErrorResponse(error);
+            }
+        };
+
+        KeyCloackHelper.login(ctx, loginListener, loginErrorListener);
+    }
+
+    private void getLocationsFromServer(String token) {
+        SharedPreferences sharedPref = ctx.getSharedPreferences(ctx.getString(R.string.shared_pref_key), Context.MODE_PRIVATE);
+        String url = sharedPref.getString(ctx.getString(R.string.pref_gateway_server), "") +
+                ":" + sharedPref.getString(ctx.getString(R.string.pref_gateway_server_port), "") +
+                "/projects/get/address/all";
+        Log.i(TAG, "test connection to URL: " + url);
+        HashMap<String, String> headers = new HashMap<>();
+        Log.i(TAG, "test connection token: " + token);
+        headers.put(AUTHORIZATION_HEADER, BEARER_TOKEN_TYPE + " " + token);
+        headers.put("Content-Type", "application/json");
+        RequestSender sender = new RequestSender(ctx);
+        sender.sendGetRequest(url, headers, listener, errorListener);
     }
 
 

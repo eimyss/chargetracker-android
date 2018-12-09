@@ -82,6 +82,46 @@ public class RequestSender {
     }
 
 
+
+    public void sendGetRequest(String url, final Map<String, String> params, Response.Listener listener, Response.ErrorListener errorListener) {
+        // Start the queue
+        mRequestQueue.start();
+        try {
+
+            StringRequest stringRequest = new StringRequest(Request.Method.GET, url, listener, errorListener) {
+
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    return params;
+                }
+
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    return params;
+                }
+
+                @Override
+                protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                    try {
+                        Log.i("VOLLEY", "NETWORK RESPONSE: " + new String(
+                                response.data,
+                                HttpHeaderParser.parseCharset(response.headers)));
+                        return Response.success(new String(
+                                response.data,
+                                HttpHeaderParser.parseCharset(response.headers)), HttpHeaderParser.parseCacheHeaders(response));
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                        return Response.success(e.getMessage(), HttpHeaderParser.parseCacheHeaders(response));
+                    }
+                }
+            };
+            mRequestQueue.add(stringRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
     public void sendRequest(String url, final Map<String, String> headers, final String body, Response.Listener listener, Response.ErrorListener errorListener) {
 
         final String[] message = {""};

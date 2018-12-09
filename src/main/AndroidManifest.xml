@@ -48,7 +48,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
-
+        <activity
+            android:name=".ManuallyAddBookingActivity"
+            android:label="@string/title_activity_manuall_add_booking"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="de.server.eimantas.expensesapp.MainActivity" />
+        </activity>
     </application>
 
 </manifest>
