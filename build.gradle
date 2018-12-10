@@ -1,3 +1,15 @@
+buildscript {
+    repositories {
+        google() // Gradle 4.0+
+        jcenter()
+        maven { url "https://maven.google.com" } // Gradle < 4.0
+    }
+
+    dependencies {
+        classpath "com.android.tools.build:gradle:3.2.1"
+    }
+}
+
 apply plugin: 'com.android.application'
 
 android {
@@ -60,3 +72,9 @@ dependencies {
     implementation 'com.android.support:support-annotations:28.0.0'
     implementation 'com.android.support:cardview-v7:28.0.0'
 }
+repositories {
+    google() // Gradle 4.0+
+    jcenter()
+    maven { url "https://maven.google.com" } // Gradle < 4.0
+}
+
